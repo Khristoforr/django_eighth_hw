@@ -1,3 +1,5 @@
+import random
+
 import pytest
 from django.urls import reverse
 
@@ -25,21 +27,22 @@ def test_list_courses(api_client, course_factory):
 # проверка фильтрации списка курсов по id
 @pytest.mark.django_db
 def test_filtered_by_id_courses(api_client, course_factory):
-    course = course_factory()
-    url = reverse('courses-detail', args=[course.id])
-    response = api_client.get(url)
+    course = course_factory(_quantity=3)
+    url = reverse('courses-list')
+    response = api_client.get(url, data={'id': course[1].id})
     assert response.status_code == 200
-
+    assert response.data[0]['id'] == course[1].id
+    assert len(response.data) == 1
 
 # проверка фильтрации списка курсов по name
 @pytest.mark.django_db
 def test_filtered_by_name_courses(api_client, course_factory):
-    course = course_factory()
+    course = course_factory(_quantity=3)
     url = reverse("courses-list")
-    response = api_client.get(url, name=course.name)
-    assert len(response.data) == 1
-    assert response.data[0]["name"] == course.name
+    response = api_client.get(url, data={'name': course[1].name})
     assert response.status_code == 200
+    assert response.data[0]['name'] == course[1].name
+    assert len(response.data) == 1
 
 
 # тест успешного создания курса
