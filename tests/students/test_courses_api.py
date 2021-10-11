@@ -6,10 +6,10 @@ from django.urls import reverse
 @pytest.mark.django_db
 def test_one_course(api_client, course_factory):
     course = course_factory()
-    url = reverse('courses-list')
+    url = reverse('courses-detail', args=[course.id])
     response = api_client.get(url)
     assert response.status_code == 200
-    assert response.data[0]['name'] == course.name
+    assert response.data['id'] == course.id
 
 
 # проверка получения списка курсов (list-логика)
@@ -26,7 +26,7 @@ def test_list_courses(api_client, course_factory):
 @pytest.mark.django_db
 def test_filtered_by_id_courses(api_client, course_factory):
     course = course_factory()
-    url = f'{reverse("courses-list")}?id={course.id}'
+    url = reverse('courses-detail', args=[course.id])
     response = api_client.get(url)
     assert response.status_code == 200
 
@@ -35,8 +35,8 @@ def test_filtered_by_id_courses(api_client, course_factory):
 @pytest.mark.django_db
 def test_filtered_by_name_courses(api_client, course_factory):
     course = course_factory()
-    url = f'{reverse("courses-list")}?name={course.name}'
-    response = api_client.get(url)
+    url = reverse("courses-list")
+    response = api_client.get(url, name=course.name)
     assert len(response.data) == 1
     assert response.data[0]["name"] == course.name
     assert response.status_code == 200
@@ -55,15 +55,15 @@ def test_create_a_course(api_client):
 @pytest.mark.django_db
 def test_update_a_course(api_client, course_factory):
     course = course_factory()
-    url = f'{reverse("courses-list")}{course.id}/'
-    data = {"name": "chemistry"}
-    response = api_client.put(url, data)
+    url = reverse('courses-detail', args=[course.id])
+    response = api_client.put(url, data={"name": "chemistry"})
     assert response.status_code == 200
+    assert response.data["name"] == "chemistry"
 
 
 @pytest.mark.django_db
 def test_delete_a_course(api_client, course_factory):
     course = course_factory()
-    url = f'{reverse("courses-list")}{course.id}/'
+    url = reverse('courses-detail', args=[course.id])
     response = api_client.delete(url)
     assert response.status_code == 204
